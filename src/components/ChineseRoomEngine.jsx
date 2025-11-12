@@ -8,6 +8,7 @@ import React, {
 } from "react";
 import { Context } from "../Context";
 
+
 const isVar = (t) => typeof t === "string" && t.startsWith("VAR_");
 
 function SymbolImg({ id }) {
@@ -32,6 +33,7 @@ function InputsRow({ inputs }) {
   );
 }
 
+
 const sectionsScript = {
   A: [
     { id: "A-01", inputs: [54], expected: 2 },
@@ -50,18 +52,7 @@ const sectionsScript = {
     { id: "C-04", inputs: [3424, "VAR_A", "VAR_B", "VAR_A"], expected: 889 },
   ],
   S: [{ id: "S-79", inputs: ["Documento", "w31"], expected: 978 }],
-  J: [
-    { id: "J-01", inputs: [54], expected: 2 },
-    { id: "J-07", inputs: [889, "VAR_A"], expectedSeq: ["VAR_A", 889] },
-    { id: "J-12", inputs: ["VAR_A", "VAR_A"], expected: 342 },
-    { id: "J-13", inputs: [889, 9089], expected: "Documento" },
-  ],
 };
-
-
-const symbolsPool = [
-  2, 3, 4, 9, 54, 76, 77, 342, 576, 659, 889, 978, 3424, 3542, 9089, "w31", "Documento",
-];
 
 
 function shuffleArray(arr) {
@@ -73,6 +64,14 @@ function shuffleArray(arr) {
   return copy;
 }
 
+function sampleArray(arr, n) {
+  return shuffleArray(arr).slice(0, n);
+}
+
+
+const symbolsPool = [
+  2, 3, 4, 9, 54, 76, 77, 342, 576, 659, 889, 978, 3424, 3542, 9089, "w31", "Documento",
+];
 
 function assignRandomVars(inputs = [], expectedSeq = [], pool = []) {
   const vars = {};
@@ -95,6 +94,9 @@ function assignRandomVars(inputs = [], expectedSeq = [], pool = []) {
 
   return { vars, replacedInputs, replacedExpectedSeq };
 }
+
+
+
 
 function matchSequence(answer, expectedSeq) {
   if (!Array.isArray(answer) || !Array.isArray(expectedSeq)) return false;
@@ -119,21 +121,25 @@ const ChineseRoomEngine = forwardRef(function ChineseRoomEngine(
   ref
 ) {
   
-  const [shuffledSteps] = useState(() => {
-    const combined = [];
-    for (const sectionKey of Object.keys(sectionsScript)) {
-      const steps = sectionsScript[sectionKey];
-      for (const s of steps) {
-        combined.push({ section: sectionKey, step: s });
-      }
-    }
-    return shuffleArray(combined); 
+  const [sequence] = useState(() => {
+    const a = sampleArray(sectionsScript.A, 2);
+    const b = sampleArray(sectionsScript.B, 2);
+    const c = sampleArray(sectionsScript.C, 3);
+    const s = sectionsScript.S; // única
+    const combined = [
+      ...a.map((step) => ({ section: "A", step })),
+      ...b.map((step) => ({ section: "B", step })),
+      ...c.map((step) => ({ section: "C", step })),
+      ...s.map((step) => ({ section: "S", step })),
+    ];
+    return combined;
   });
 
   const [index, setIndex] = useState(0);
   const [renderedStep, setRenderedStep] = useState(null);
+  const { setrendTransition } = useContext(Context)
 
-  const currentItem = shuffledSteps[index];
+  const currentItem = sequence[index];
   const sectionKey = currentItem?.section;
   const step = currentItem?.step;
 
@@ -142,7 +148,7 @@ const ChineseRoomEngine = forwardRef(function ChineseRoomEngine(
     [sectionKey, index, step]
   );
 
- 
+  
   useEffect(() => {
     if (!step) {
       setRenderedStep(null);
@@ -178,12 +184,9 @@ const ChineseRoomEngine = forwardRef(function ChineseRoomEngine(
   
   function advance() {
     const next = index + 1;
-    if (next < shuffledSteps.length) setIndex(next);
+    if (next < sequence.length) setIndex(next);
     else onFinish?.();
   }
-
-  const {setrendTransition} = useContext(Context)
-
 
   useImperativeHandle(ref, () => ({
     submitAnswer: (answer) => {
@@ -198,8 +201,8 @@ const ChineseRoomEngine = forwardRef(function ChineseRoomEngine(
 
       if (ok) {
         onCorrect?.({ ...currentInfo, answer, vars: renderedStep.vars });
-        advance();
         setrendTransition("transitionInGame")
+        advance();
       } else {
         onWrong?.({ ...currentInfo, answer, vars: renderedStep.vars });
       }
@@ -212,11 +215,7 @@ const ChineseRoomEngine = forwardRef(function ChineseRoomEngine(
 
   return (
     <div className="w-full flex flex-col items-center gap-4 text-zinc-200">
-      
-
       <InputsRow inputs={renderedStep.inputs} />
-
-      
     </div>
   );
 });

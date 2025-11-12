@@ -6,11 +6,12 @@ import TransitionComponent from "./TransitionComponent";
 import DateTimeComponent from "./DateTimeComponent";
 import InputSymbols from "./InputSymbols";
 import analiticGif from "../assets/baixados.gif"
-import manu1 from "../assets/manu-1.jpg"
-import manu2 from "../assets/manu-2.jpg"
-import manu3 from "../assets/manu-3.jpg"
-import manu4 from "../assets/manu-4.jpg"
-import manu5 from "../assets/manu-5.jpg"
+import manu1 from "../assets/manu-1.png"
+import manu2 from "../assets/manu-2.png"
+import manu3 from "../assets/manu-3.png"
+import manu4 from "../assets/manu-4.png"
+import SettingsComponent from "./SettingsComponent";
+import FinalScreen from "./FinalScreen";
 
 export default function StartedGame() {
   const {
@@ -23,10 +24,16 @@ export default function StartedGame() {
     addConsoleMessage,
     incrementTentativas,
     increaseConscience,
-    setLastResult          
+    setLastResult,
+    setSystemState,
+    addConsoleEntry,
+    geralSystemState,
+    setGeralSystemState,
+    finalScreen, 
+    setFinalScreen        
   } = useContext(Context);
 
-  const manualimgsArr = [manu1, manu2, manu3, manu4, manu5]
+  const manualimgsArr = [manu1, manu2, manu3, manu4]
 
   const [selectSim, setSelectSim] = useState([]); 
   const [isComplete, setIsComplete] = useState(false);
@@ -107,16 +114,26 @@ export default function StartedGame() {
   function handleManual(direction){
     if(direction == "right" && imgManual < manualimgsArr.length - 1){
       setimgManual(imgManual + 1)
+      
     }
+    if(direction == "right" && imgManual >= manualimgsArr.length - 1){
+          setimgManual(0)
+      }
     if (direction == "left" && imgManual > 0) {
       setimgManual(imgManual - 1)
+    }
+    if (direction == "left" && imgManual == 0) {
+      setimgManual(manualimgsArr.length - 1)
     }
   }
 
   return (
     <div className="text-green-400 fade-in">
-      
+
+      {finalScreen && <FinalScreen />}
+
       <div className="p-2 text-sm font-medium text-center border-b border-green-400/50">
+        <div className="absolute"><SettingsComponent rotate={"yes"}/></div>
         <h2>Sistema K-AI-ROS</h2>
       </div>
 
@@ -135,21 +152,33 @@ export default function StartedGame() {
           }
           
           <div className="absolute text-[10px] flex items-center top-0 left-0">
-            <p>System Status : OK</p>
+            <p>System Status : <span className="underline">{geralSystemState}</span></p>
             <img src={analiticGif} alt="" className="w-20 ml-5"/>
           </div>
           <ChineseRoomEngine
             ref={engineRef}
-            onStepChange={handleStepChange}
+            onStepChange={() => {
+              {handleStepChange()
+              setSystemState("PROCESSING")}}}
             onCorrect={(info) => {
+              setLastResult("correct");
               incrementTentativas();
-              increaseConscience(0.7);
-              setLastResult("correct");}}
-            onWrong={(info) => {
-              incrementTentativas();
-              setLastResult("wrong");
+              increaseConscience(1.2);
+              setSystemState("SYNC")
+              addConsoleEntry("correct")
+              setGeralSystemState("OK")
             }}
-            onFinish={() => {{addConsoleMessage("Sistema completo — todos os protocolos executados.")}}}
+            onWrong={(info) => {
+              setLastResult("wrong");
+              incrementTentativas();
+              setSystemState("ERROR");
+              addConsoleEntry("wrong");
+              setGeralSystemState("FALHA NA COMUNICAÇÂO")
+            }}
+            onFinish={() => {
+    setSystemState("SYNC")
+  addConsoleEntry("correct")
+setFinalScreen(true)}} // HORA DE APARECER A TELA FINAL
           />
 
           

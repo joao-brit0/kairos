@@ -6,6 +6,7 @@ import {Context } from '../Context'
 import StartedGame from './StartedGame';
 import Initransfer from './Initransfer';
 import Console from './Console';
+import LogoutScreen from './LogoutScreen';
 
 
 export default function GameScreen() {
@@ -20,6 +21,7 @@ export default function GameScreen() {
         <div className='bg-black absolute top-[60%] left-[9%] w-[17%] h-[20%] transform rotate-x-[17deg] rotate-y-[-20deg] rounded-2xl overflow-auto scrollCustom'>
             {menuInitiated === "info" && <SecondScreen />}
             {menuInitiated === "console" && <Console />}
+            {menuInitiated === "logout" && <LogoutScreen />}
         </div>
         <img src={screen} alt="Imagem de um monitor antigo" className='w-7xl'/>
     </div>

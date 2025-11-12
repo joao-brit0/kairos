@@ -115,11 +115,26 @@ function clearSelectionList() {
     const [conscience, setConscience] = useState(0);
     const [consoleLogs, setConsoleLogs] = useState([]);
     const [lastResult, setLastResult] = useState(null);
+    const [systemState, setSystemState] = useState("IDLE")
+    const [geralSystemState, setGeralSystemState] = useState("OK")
+    const [finalScreen, setFinalScreen] = useState(false)
 
     function addConsoleMessage(msg) {
     setConsoleLogs(prev => [
       ...prev,
       { id: Date.now(), text: msg },
+    ]);
+  }
+
+  function addConsoleEntry(result) {
+    setConsoleLogs((prev) => [
+      ...prev,
+      {
+        id: Date.now(),
+        lastResult: result, // "correct" ou "wrong"
+        tentativas: tentativas + 1,
+        conscience,
+      },
     ]);
   }
 
@@ -138,7 +153,8 @@ function clearSelectionList() {
             rendTransition, setrendTransition, tentativas, setTentativas, incrementTentativas,
       conscience, setConscience, increaseConscience,
       consoleLogs, addConsoleMessage, lastResult,
-        setLastResult
+        setLastResult, systemState,
+        setSystemState, addConsoleEntry, geralSystemState, setGeralSystemState, finalScreen, setFinalScreen
         }} >
             {children}
         </Context.Provider>
